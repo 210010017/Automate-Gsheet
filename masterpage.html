@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+	<base target="_top">
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css">
+
+</head>
+
+<body>
+
+  <div class="container"> 
+
+    <div class="row">
+
+      <div class="col s12">
+
+        <table class="striped">
+          <thead>
+            <tr>
+                <th>Email</th>
+                <th>Name</th>
+                <th>Condition</th>
+            </tr>
+          </thead>
+
+          <tbody id="t-body">
+            
+          </tbody>
+        </table>
+
+      </div>
+
+    </div>
+
+  </div>
+	
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
+
+<script>
+
+document.addEventListener("DOMContentLoaded",function(){
+
+  google.script.run.withSuccessHandler(generateTable).getData();
+
+});
+
+
+function generateTable(rowArray){
+
+  var nc = 3; // number of columns
+  
+  var tbody = document.getElementById("t-body");
+
+  rowArray.forEach(function(r){
+
+    var row = document.createElement("tr");
+
+    for(var i=1;i<nc+1;i++){
+      var col = document.createElement("td");
+      col.textContent = r[i-1];
+      row.appendChild(col);
+    }
+
+    tbody.appendChild(row);
+
+  });
+
+};
+
+</script>
+
+</body>
+
+</html>
+
