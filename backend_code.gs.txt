@@ -1,0 +1,55 @@
+function doGet(e){ 
+
+  var adminEmails = ["210010017@iitdh.ac.in"]; // Replace with the email of the owner of the spreadsheet
+  var spreadSheeetID = "1kcImG3d1D0OIO-AHoLMLBnDDYOyDZhHgqZueNocgeLI"; // Replace with the ID of the spreadsheet
+
+  /* ========== DO NOT EDIT BELOW THIS LINE ========== */
+
+  var userEmail = e?.parameter?.uac;
+  var stringColumnNum = e?.parameter?.scn;
+
+  var emailColumn = parseInt(stringColumnNum);
+
+  var doc = SpreadsheetApp.openById(spreadSheeetID); 
+  var sheets = doc.getSheets();
+  var reqDataForSheet = {};
+
+  sheets.forEach(function(sheet) {
+    var sheetName = sheet.getName();
+    var lastrow = sheet.getLastRow(); 
+    var nofcols = sheet.getLastColumn();
+    var requestedData = [];
+
+    if(lastrow == 0 || nofcols == 0){
+      reqDataForSheet[sheetName] = [];
+      return;
+    }
+
+    var headings = sheet.getRange(1, 1, 1, nofcols).getValues();
+    requestedData.push(...headings);
+    var values = [];
+    if(lastrow != 1){
+      var range = sheet.getRange(2, 1, lastrow - 1, nofcols); 
+      values = range.getValues();
+    }
+
+    if(adminEmails.includes(userEmail)){
+      if(lastrow != 1){
+        requestedData.push(...values);
+      }
+    } 
+    else {
+      if(values != []){
+        var filteredValues = values.filter(function(row) {
+          return row[emailColumn - 1] == userEmail;
+        });
+        requestedData.push(...filteredValues);
+      }
+    }
+    
+    reqDataForSheet[sheetName] = requestedData;
+  });
+
+  return ContentService.createTextOutput(JSON.stringify({"reqDataForSheet": reqDataForSheet})).setMimeType(ContentService.MimeType.JSON); 
+  
+}

@@ -1,0 +1,39 @@
+var adminEmails = ["210010017@iitdh.ac.in"];
+
+// var deployedgetSheetsUrl="https://script.google.com/macros/s/AKfycbzR_SbfFz7YLxeNtyn3EIqGTOHYFS0dloJwx8Qc6MjMXGskHI9sGqTOSVk-OxVdEbymJg/exec";
+
+var deployedBackendUrl = "https://script.google.com/macros/s/AKfycbxcNjfJjUAxk1N7eu4X0KMpv4Kat71dSxtrcGZB0bOL4F_Qac2PDEiCnYK5ADVy4BkN/exec";
+
+var deployedUpdatesUrl = "https://script.google.com/macros/s/AKfycbyf5gv3xXKV5usUNP5DRH4QhEqGaa0WtV8gMRXUvA3vlX41HwHy2HezAM7C_z4TjBe6IQ/exec";
+
+
+/* ==================== DO NOT EDIT BELOW THIS LINE ==================== */
+
+var userEmail = Session.getActiveUser().getEmail();
+
+function doGet(e){
+  if(adminEmails.includes(userEmail)){
+    return HtmlService.createTemplateFromFile("masterpage").evaluate().setTitle("MASTER PAGE");
+  }
+  else{
+    return HtmlService.createTemplateFromFile("userpage").evaluate().setTitle("USER PAGE");
+  } 
+}
+
+function getData(emailColumn){
+  var stringColumnNum = emailColumn.toString();
+  var response = UrlFetchApp.fetch(deployedBackendUrl+"?uac="+userEmail+"&scn="+stringColumnNum);
+  var data = JSON.parse(response.getContentText()).reqDataForSheet;
+  return data;
+}
+
+// function getSheetNames(){
+//   var response = UrlFetchApp.fetch(deployedgetSheetsUrl);
+//   var allS = JSON.parse(response.getContentText()).allS;
+//   Logger.log(allS);
+//   return allS;
+// }
+
+function throwback(val,fb){
+  UrlFetchApp.fetch(deployedUpdatesUrl+"?uac="+userEmail+"&val="+val+"&fbval="+fb);
+}

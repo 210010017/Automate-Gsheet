@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+	<base target="_top">
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css">
+
+</head>
+
+<body>
+
+  <div class="container"> 
+  
+    <div class="row" id="rowClass">
+    <!-- <i class="material-icons">search</i> -->
+    <input type="text" id="searchBar" placeholder="Search...">
+
+    <h5 id="lm">Loading, please wait...</h5>
+
+      <div id="allTables">
+
+      </div>
+    </div>
+
+  </div>
+	
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
+
+<script>
+
+  var subSheets = [];
+  var reqDataForSheet = {};
+
+  document.addEventListener("DOMContentLoaded", function(){
+
+    // google.script.run.withSuccessHandler(function(allS){
+    //   subSheets = allS;
+      google.script.run.withSuccessHandler(function(data){
+        reqDataForSheet = data;
+        subSheets = Object.keys(reqDataForSheet);
+        subSheets = subSheets.sort().reverse();
+
+        const loadingMessage = document.getElementById('lm');
+        loadingMessage.remove();
+
+        for(var i=0; i<subSheets.length; i++){
+          displayTableName(subSheets[i]);
+          if(reqDataForSheet[subSheets[i]].length > 1){
+            generateTable(reqDataForSheet[subSheets[i]]);
+          }
+          else{
+            showNoRecords();
+          }
+        }
+        createFeedbackForm();
+      }).getData(2);
+    // }).getSheetNames();
+
+    
+
+    // function fetchAndGenerateTables(sheetNames, index){
+    //     if (index >= sheetNames.length) {
+    //       createFeedbackForm();
+    //       return;
+    //     }
+    //     var sheetName = sheetNames[index];
+    //     if (index === 0) {
+    //       const loadingMessage = document.createElement('h5');
+    //       loadingMessage.textContent = 'Loading, please wait...';
+    //       loadingMessage.id = 'loading-message'; // Add id attribute
+    //       document.getElementById('rowClass').appendChild(loadingMessage);
+    //     }
+    //     google.script.run.withSuccessHandler(function(rarray){
+    //         displayTableName(sheetName);
+    //         if (rarray.length > 1) {
+    //           generateTable(rarray);
+    //         } else {
+    //           showNoRecords();
+    //         }
+    //         if (index === 0) {
+    //           const loadingMessage = document.getElementById('loading-message');
+    //           if (loadingMessage) {
+    //             loadingMessage.remove();
+    //           }
+    //         }
+    //         fetchAndGenerateTables(sheetNames, index + 1);
+    //     }).getData(sheetName, 2);
+    // }
+
+    // google.script.run.withSuccessHandler(function(allS){  //Starting point
+    //   fetchAndGenerateTables(allS, 0);
+    // }).getSheetNames();
+
+    function filterRows(searchText) {
+      var tables = document.querySelectorAll('.highlight');
+      tables.forEach(function(table) {
+        var rows = table.querySelectorAll('tbody tr');
+        rows.forEach(function(row) {
+          var cells = row.querySelectorAll('td');
+          var visible = false;
+          cells.forEach(function(cell) {
+            if (cell.textContent.toLowerCase().includes(searchText.toLowerCase())) {
+              visible = true;
+            }
+          });
+          if (visible) {
+            row.style.display = "";
+          } else {
+            row.style.display = "none";
+          }
+        });
+      });
+    }
+
+    document.getElementById('searchBar').addEventListener('input', function() {
+      var searchText = this.value.trim();
+      filterRows(searchText);
+    });
+
+  });
+
+
+function yesclick(){
+  document.getElementById("yorn").style.visibility="hidden";
+  google.script.run.throwback("Yes","");
+};
+
+
+function noclick(){
+  document.getElementById("yorn").style.visibility="hidden";
+  document.getElementById("fbform").style.visibility="visible";
+};
+
+
+function collectfeed(){
+  var fb = document.getElementById("fbin").value;
+  google.script.run.throwback("No",fb);
+  document.getElementById("fbform").style.visibility="hidden";
+  alert("Your response has been recorded!");
+};
+
+function displayTableName(sheetName){
+  var tname = document.createElement('h4');
+  tname.textContent = sheetName;
+  document.getElementById('allTables').appendChild(tname);
+}
+
+
+function generateTable(sheetData) {
+
+  var container = document.createElement('div');
+  container.className = 'card-panel valign-wrapper';
+  var tableWrapper = document.createElement('div');
+  tableWrapper.className = 'col s12';
+
+  // Teaching table
+  var teachingTable = document.createElement('table');
+  teachingTable.className = 'highlight';
+  var teachingThead = document.createElement('thead');
+  var teachingTbody = document.createElement('tbody');
+
+  // Project table
+  var projectTable = document.createElement('table');
+  projectTable.className = 'highlight';
+  var projectThead = document.createElement('thead');
+  var projectTbody = document.createElement('tbody');
+
+  // Teaching table headings
+  var teachingHeaderRow = document.createElement('tr');
+  for (var i = 7; i <= 11 ; i++) {
+    var th = document.createElement('th');
+    th.textContent = sheetData[0][i];
+    teachingHeaderRow.appendChild(th);
+  }
+  teachingThead.appendChild(teachingHeaderRow);
+
+  // Project table headings
+  var projectHeaderRow = document.createElement('tr');
+  for (var i = 36; i <= 42; i++) {
+    var th = document.createElement('th');
+    th.textContent = sheetData[0][i];
+    projectHeaderRow.appendChild(th);
+  }
+  projectThead.appendChild(projectHeaderRow);
+
+  // Teaching table values
+  for (var m = 1; m < sheetData.length; m++) { // m=1 implies 2nd row
+    for(var i=0; i<4; i++){
+      if(i==0 || sheetData[m][12+(6*(i-1))].toLowerCase()=="yes"){
+        var dataRow = document.createElement('tr');
+        for(var n = 7+(i*6); n <= 11+(i*6); n++){ // n=0 implies 1st column
+          var td = document.createElement('td');
+          td.textContent = sheetData[m][n];
+          dataRow.appendChild(td);
+        }
+        teachingTbody.appendChild(dataRow);
+      }      
+    }
+  }
+
+  // Project table values
+  for (var m = 1; m < sheetData.length; m++) { // m=1 implies 2nd row
+    for(var i=0; i<4; i++){
+      if(i==0 || sheetData[m][43+(8*(i-1))].toLowerCase()=="yes"){
+        var dataRow = document.createElement('tr');
+        for (var n = 36+(i*8); n <= 42+(i*8); n++) { // n=0 implies 1st column
+          var td = document.createElement('td');
+          td.textContent = sheetData[m][n];
+          dataRow.appendChild(td);
+        }
+        projectTbody.appendChild(dataRow);
+      }
+    }
+  }
+
+  // Assemble the HTML structure for Teaching table
+  teachingTable.appendChild(teachingThead);
+  teachingTable.appendChild(teachingTbody);
+
+  tableWrapper.appendChild(teachingTable);
+
+  // Assemble the HTML structure for Project table
+  projectTable.appendChild(projectThead);
+  projectTable.appendChild(projectTbody);
+
+
+  tableWrapper.appendChild(projectTable);
+
+  container.appendChild(tableWrapper);
+
+  var allTablesElement = document.getElementById('allTables');
+  allTablesElement.appendChild(container);
+
+}
+
+
+function showNoRecords(){
+
+  var container = document.createElement('div');
+  container.className = 'card-panel valign-wrapper';
+
+  var para = document.createElement('p');
+  para.textContent = "No Records";
+  
+  container.appendChild(para);
+
+  var allTablesElement = document.getElementById('allTables');
+  allTablesElement.appendChild(container);
+
+}
+
+
+function createFeedbackForm() {
+
+  const yornDiv = document.createElement('div');
+  yornDiv.id = 'yorn';
+
+  const firstParagraph = document.createElement('p');
+  firstParagraph.className = 'center-align';
+  firstParagraph.textContent = 'Is all your data correct?';
+
+  const secondParagraph = document.createElement('p');
+  secondParagraph.className = 'center-align';
+
+  const yesButton = document.createElement('button');
+  yesButton.textContent = 'Yes';
+  yesButton.onclick = yesclick;
+
+  const noButton = document.createElement('button');
+  noButton.textContent = 'No';
+  noButton.onclick = noclick;
+
+  secondParagraph.appendChild(yesButton);
+  secondParagraph.appendChild(noButton);
+
+  yornDiv.appendChild(firstParagraph);
+  yornDiv.appendChild(secondParagraph);
+
+  const fbformDiv = document.createElement('div');
+  fbformDiv.id = 'fbform';
+  fbformDiv.style.visibility = 'hidden';
+
+  const inputDiv = document.createElement('div');
+  inputDiv.className = 'input-field col s12';
+
+  const inputField = document.createElement('input');
+  inputField.id = 'fbin';
+  inputField.type = 'text';
+
+  const label = document.createElement('label');
+  label.setAttribute('for', 'fbin');
+  label.textContent = 'Changes Required';
+
+  const submitButton = document.createElement('button');
+  submitButton.textContent = 'Submit';
+  submitButton.onclick = collectfeed;
+
+  inputDiv.appendChild(inputField);
+  inputDiv.appendChild(label);
+  inputDiv.appendChild(submitButton);
+
+  fbformDiv.appendChild(inputDiv);
+
+  document.getElementById('rowClass').appendChild(yornDiv);
+  document.getElementById('rowClass').appendChild(fbformDiv);
+}
+
+
+</script>
+
+</body>
+
+</html>
